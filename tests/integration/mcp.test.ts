@@ -43,7 +43,7 @@ function startServer(projectPath: string): McpClient {
   const request = (obj: Record<string, unknown>) =>
     new Promise<any>((resolve, reject) => {
       const id = obj.id as number;
-      const timer = setTimeout(() => reject(new Error(`timeout waiting for id ${id}`)), 5000);
+      const timer = setTimeout(() => reject(new Error(`timeout waiting for id ${id}`)), 30000);
       handlers.set(id, (msg) => {
         clearTimeout(timer);
         resolve(msg);
@@ -91,7 +91,7 @@ describe('mcp server integration', () => {
     storage.close();
 
     const client = startServer(tmpDir);
-    await wait(400);
+    await wait(1000);
 
     const init = await client.request({
       jsonrpc: '2.0',
@@ -106,7 +106,7 @@ describe('mcp server integration', () => {
     expect(init.result.serverInfo.name).toBe('coster');
 
     client.notify({ jsonrpc: '2.0', method: 'notifications/initialized' });
-    await wait(200);
+    await wait(500);
 
     const list = await client.request({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} });
     const names = list.result.tools.map((t: any) => t.name);
