@@ -25,8 +25,17 @@ jobs:
       - run: npm run build
       - run: npx tsc --noEmit
       - run: npm test
+      - name: Check if version already published
+        id: published
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if npm view "coster@${VERSION}" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publish to npm
-        if: ${{ env.NODE_AUTH_TOKEN != '' }}
+        if: steps.published.outputs.exists != 'true'
         run: npm publish --access public
       - name: Create GitHub release
         env:
