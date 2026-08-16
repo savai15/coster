@@ -33,8 +33,8 @@ function ctx(): ProjectContext {
 }
 
 describe('Tool registry', () => {
-  it('registers all 9 tools', () => {
-    expect(Object.keys(TOOL_REGISTRY).length).toBe(9);
+  it('registers all 10 tools', () => {
+    expect(Object.keys(TOOL_REGISTRY).length).toBe(10);
   });
 
   it('returns definition by name', () => {

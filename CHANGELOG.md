@@ -3,6 +3,27 @@
 All notable changes to Coster are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] - 2026-08-16
+
+### Added
+
+- `coster note "<text>"` — quick-capture a memory from plain text with automatic
+  category detection (decision / workaround / investigation / mistake / convention).
+- `coster setup` — interactive setup wizard.
+- `coster show [tool]` — print the generated memory file for a tool.
+- `coster completion <bash|zsh|fish|pwsh>` — shell completion scripts.
+- Portable `COSTER.md` fallback generated on every `init` and `sync` so any assistant
+  can read Coster memory even when no specific tool is detected.
+- Auto-sync on capture/edit/delete when `autoInject` is enabled (default).
+- Plain `coster init` now runs the full bootstrap (was previously a no-op without
+  `--auto`); `--tool` and an interactive picker select the target assistant.
+- Broader stack detection (PHP/Laravel/Symfony, C#/ASP.NET, Ruby/Rails, Java/Spring,
+  Go/Gin, plus more JS frameworks and build systems).
+
+### Changed
+
+- Backfill now imports only commits carrying an explicit `cost:<category>:` directive.
+
 ## [1.0.0] - 2026-08-16
 
 Initial stable release.

@@ -8,6 +8,7 @@ import { CodexGenerator } from './codex.js';
 import { ClineGenerator } from './cline.js';
 import { ContinueGenerator } from './continue.js';
 import { KiroGenerator } from './kiro.js';
+import { CosterGenerator } from './coster.js';
 import { BaseGenerator } from './base.js';
 
 export interface ToolDefinition {
@@ -26,6 +27,7 @@ export const TOOL_REGISTRY: Record<string, ToolDefinition> = {
   cline: { name: 'cline', generator: ClineGenerator, defaultPath: '.clinerules' },
   continue: { name: 'continue', generator: ContinueGenerator, defaultPath: '.continue/rules/coster.md' },
   kiro: { name: 'kiro', generator: KiroGenerator, defaultPath: '.kiro/steering/coster.md' },
+  coster: { name: 'coster', generator: CosterGenerator, defaultPath: 'COSTER.md' },
 };
 
 export function getToolDefinition(name: string): ToolDefinition | null {

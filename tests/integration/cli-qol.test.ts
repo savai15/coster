@@ -100,9 +100,8 @@ describe('init --auto bootstrap', () => {
     execSync('git commit -q -m "cost:decision: Standardize on feature flags"', { cwd: tmp });
 
     const out = run(tmp, 'init --auto');
-    expect(out).toContain('Git repo:        yes');
-    expect(out).toContain('Detected tool:   opencode');
-    expect(out).toContain('Backfill:        imported 1');
+    expect(out).toContain('opencode');
+    expect(out).toContain('COSTER.md');
 
     const storage = await Storage.create(tmp);
     try {
@@ -111,6 +110,10 @@ describe('init --auto bootstrap', () => {
       expect(memories[0].category).toBe('decision');
       expect(memories[0].content).toBe('Standardize on feature flags');
       expect(memories[0].source).toBe('auto');
+
+      // Portable + tool-specific files are generated.
+      expect(fs.existsSync(path.join(tmp, 'COSTER.md'))).toBe(true);
+      expect(fs.readFileSync(path.join(tmp, 'AGENTS.md'), 'utf-8')).toContain('COSTER:START');
     } finally {
       await storage.close();
     }

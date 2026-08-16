@@ -68,6 +68,7 @@ export const defaultConfig: CosterConfig = {
     { name: 'cline', enabled: true, exportPath: '.clinerules', tokenBudget: 10000 },
     { name: 'continue', enabled: true, exportPath: '.continue/rules/coster.md', tokenBudget: 10000 },
     { name: 'kiro', enabled: true, exportPath: '.kiro/steering/coster.md', tokenBudget: 10000 },
+    { name: 'coster', enabled: true, exportPath: 'COSTER.md', tokenBudget: 12000 },
   ],
   quality: {
     minScore: 4,

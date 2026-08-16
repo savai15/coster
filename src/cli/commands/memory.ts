@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { Storage } from '../../core/storage.js';
 import { CreateMemory, MemoryCategory, MemorySource } from '../../types/index.js';
 import { printInfo, printError, printJson } from '../utils/output.js';
+import { syncAfterCapture } from '../utils/sync.js';
 
 function now(): string {
   return new Date().toISOString();
@@ -123,6 +124,7 @@ export function memoryCommand(program: Command): void {
         try {
           const created = storage.createMemory(record);
           printInfo(`Created memory ${created.id.substring(0, 8)} (${created.category})`);
+          syncAfterCapture(storage, process.cwd());
         } finally {
           await storage.close();
         }
@@ -161,6 +163,7 @@ export function memoryCommand(program: Command): void {
             return;
           }
           printInfo(`Updated memory ${updated.id.substring(0, 8)}`);
+          syncAfterCapture(storage, process.cwd());
         } finally {
           await storage.close();
         }
@@ -184,6 +187,7 @@ export function memoryCommand(program: Command): void {
             return;
           }
           printInfo(`Deleted memory ${id.substring(0, 8)}`);
+          syncAfterCapture(storage, process.cwd());
         } finally {
           await storage.close();
         }

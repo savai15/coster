@@ -4,6 +4,7 @@ import { Storage } from '../../core/storage.js';
 import { QualityGate } from '../../core/quality.js';
 import { Memory, MemoryCategory, Session } from '../../types/index.js';
 import { readGitCommit, readGitCheckout, parseCostDirective, isGitRepo } from '../../capture/git.js';
+import { syncAfterCapture } from '../utils/sync.js';
 
 const SILENT = process.env.COSTER_SILENT === '1';
 
@@ -98,6 +99,7 @@ export function captureCommand(program: Command): void {
           console.log(`Recorded commit ${commit.hash.substring(0, 8)} in session ${session.id.substring(0, 8)}`);
         }
 
+        syncAfterCapture(storage, projectPath);
         storage.close();
       } catch (error) {
         if (!SILENT) console.error('Failed to capture commit:', error);
@@ -189,6 +191,7 @@ async function manualCapture(options: any): Promise<void> {
     console.log('Memory captured successfully!');
     console.log('ID:', stored.id);
 
+    syncAfterCapture(storage, process.cwd());
     storage.close();
   } catch (error) {
         console.error('Failed to capture memory:', error);

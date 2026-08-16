@@ -62,11 +62,14 @@ cost:decision: We standardized on feature flags for all new endpoints
 
 | Command | Description |
 |---------|-------------|
-| `coster init [--auto] [--shell] [--tool <id>]` | Initialize a project. `--auto` runs the full bootstrap. |
+| `coster init [--auto] [--tool <id>] [--minimal]` | Initialize a project. Plain `init` runs the full bootstrap and always keeps a portable `COSTER.md`. |
+| `coster setup` | Interactive setup wizard. |
+| `coster note "<text>"` | Quick-capture a memory from plain text (auto-categorizes). |
 | `coster capture --text "..." --category <c>` | Manually capture a memory. |
 | `coster capture commit` / `coster capture checkout` | Called automatically by git hooks. |
 | `coster search <query>` | Search memories (records access for `stats`). |
 | `coster list [--category <c>]` | List memories. |
+| `coster show [tool]` | Print the generated memory file for a tool (default: `COSTER.md`). |
 | `coster sync [--tool <id>] [--dry-run]` | Regenerate tool-specific memory files. |
 | `coster memory add \| list \| show \| edit \| delete` | CRUD on individual memories. |
 | `coster config get \| set \| list` | Read/modify configuration. |
@@ -74,6 +77,7 @@ cost:decision: We standardized on feature flags for all new endpoints
 | `coster stats` | Memory statistics by category and access. |
 | `coster hooks install \| uninstall \| list` | Manage git/shell hooks. |
 | `coster mcp` | Start the MCP server. |
+| `coster completion <bash\|zsh\|fish\|pwsh>` | Print a shell completion script. |
 
 ### Examples
 

@@ -18,7 +18,7 @@ describe('Config', () => {
 
   it('returns default config when no file exists', () => {
     const config = loadConfig(tmpDir);
-    expect(config.tools.length).toBe(9);
+    expect(config.tools.length).toBe(10);
     expect(config.hooks.git).toBe(false);
     expect(config.autoInject).toBe(true);
   });
@@ -29,7 +29,7 @@ describe('Config', () => {
     expect(fs.existsSync(configPath(tmpDir))).toBe(true);
     const loaded = loadConfig(tmpDir);
     expect(loaded.autoInject).toBe(false);
-    expect(loaded.tools.length).toBe(9);
+    expect(loaded.tools.length).toBe(10);
   });
 
   it('merges partial file over defaults', () => {
@@ -37,13 +37,13 @@ describe('Config', () => {
     fs.writeFileSync(configPath(tmpDir), JSON.stringify({ autoInject: false }));
     const loaded = loadConfig(tmpDir);
     expect(loaded.autoInject).toBe(false);
-    expect(loaded.tools.length).toBe(9);
+    expect(loaded.tools.length).toBe(10);
   });
 
   it('falls back to defaults on invalid JSON', () => {
     fs.mkdirSync(path.join(tmpDir, '.coster'), { recursive: true });
     fs.writeFileSync(configPath(tmpDir), '{ not valid json');
     const loaded = loadConfig(tmpDir);
-    expect(loaded.tools.length).toBe(9);
+    expect(loaded.tools.length).toBe(10);
   });
 });
