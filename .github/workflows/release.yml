@@ -24,6 +24,7 @@ jobs:
       - run: npx tsc --noEmit
       - run: npm test
       - run: npm publish --access public
+        if: ${{ secrets.NPM_TOKEN != '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create GitHub release
