@@ -12,8 +12,6 @@ investigations — into a local SQLite database, then regenerates tool-specific 
 (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, …) so every AI assistant you use shares the same
 brain. No API keys, no cloud, no telemetry.
 
-## Demo
-
 ![Coster promo](./assets/coster-promo.gif)
 
 ## Why
