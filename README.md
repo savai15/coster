@@ -3,7 +3,7 @@
 > Universal, offline-first context persistence layer for AI coding assistants.
 
 [![npm version](https://img.shields.io/npm/v/coster.svg)](https://www.npmjs.com/package/coster)
-[![CI](https://github.com/your-org/coster/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/coster/actions/workflows/ci.yml)
+[![CI](https://github.com/savai15/coster/actions/workflows/ci.yml/badge.svg)](https://github.com/savai15/coster/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org)
 

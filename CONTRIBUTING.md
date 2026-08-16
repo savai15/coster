@@ -6,7 +6,7 @@ and what we expect from contributions.
 ## Development setup
 
 ```bash
-git clone https://github.com/your-org/coster.git
+git clone https://github.com/savai15/coster.git
 cd coster
 npm install
 npm run build

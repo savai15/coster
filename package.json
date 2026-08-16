@@ -44,11 +44,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/coster-dev/coster.git"
+    "url": "git+https://github.com/savai15/coster.git"
   },
-  "homepage": "https://github.com/coster-dev/coster#readme",
+  "homepage": "https://github.com/savai15/coster#readme",
   "bugs": {
-    "url": "https://github.com/coster-dev/coster/issues"
+    "url": "https://github.com/savai15/coster/issues"
   },
   "engines": {
     "node": ">=18.0.0"
