@@ -78,6 +78,9 @@ cost:decision: We standardized on feature flags for all new endpoints
 | `coster status` | Health check ("doctor"). |
 | `coster stats` | Memory statistics by category and access. |
 | `coster hooks install \| uninstall \| list` | Manage git/shell hooks. |
+| `coster session start \| end \| list` | Manage capture sessions (inject context on start, archive expired memories on end). |
+| `coster restore [-t <tool>]` | Print memories grouped by category for a tool. |
+| `coster cleanup [--dry-run]` | Archive memories expired per lifecycle TTL. |
 | `coster mcp` | Start the MCP server. |
 | `coster completion <bash\|zsh\|fish\|pwsh>` | Print a shell completion script. |
 
@@ -116,6 +119,7 @@ is **preserved** — Coster only owns the region between `<!-- COSTER:START -->`
 | Cline | `.clinerules` |
 | Continue | `.continue/rules/coster.md` |
 | Kiro | `.kiro/steering/coster.md` |
+| Coster (portable) | `COSTER.md` |
 
 ### Enabling the MCP server (recommended)
 
@@ -164,22 +168,21 @@ their respective `mcp.json` / MCP settings file:
 Capture structured memory from commit messages without leaving your editor. The format is:
 
 ```
-cost:<category>:[importance] <content>
+cost:<category>: <content>
 ```
 
 - `category` — one of `preference`, `convention`, `decision`, `investigation`,
   `workaround`, `recap`, `mistake`.
-- `importance` — optional `0..1` score; defaults to `0.8`.
 
 Examples:
 
 ```
 cost:decision: We standardized on feature flags for all new endpoints
-cost:convention:0.6: All dates are stored as UTC ISO-8601 strings
+cost:convention: All dates are stored as UTC ISO-8601 strings
 cost:workaround: The staging API requires a trailing slash or it 500s
 ```
 
-Every commit that includes a directive is captured by the post-commit hook.
+Every commit that includes a directive is captured by the post-commit hook (stored with importance `0.8`).
 
 ## Memory categories
 
