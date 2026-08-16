@@ -24,7 +24,7 @@ const program = new Command();
 program
   .name('coster')
   .description('Universal context persistence layer for AI coding assistants')
-  .version('1.0.2');
+  .version('1.0.3');
 
 initCommand(program);
 captureCommand(program);

@@ -3,6 +3,15 @@
 All notable changes to Coster are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] - 2026-08-16
+
+### Fixed
+
+- Security: bumped `@modelcontextprotocol/sdk` to `^1.30.0` (resolves high-severity
+  advisories GHSA-345p-7cg4-v4c7, GHSA-w48q-cv73-mx4w, GHSA-8r9q-7v3j-jr4g).
+- Security: bumped `uuid` to `^11.1.1` (resolves moderate advisory GHSA-w5hq-g745-h8pq).
+- Consumer `npm i coster` now installs with zero `npm audit` findings.
+
 ## [1.0.2] - 2026-08-16
 
 ### Added
