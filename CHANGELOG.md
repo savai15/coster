@@ -3,6 +3,15 @@
 All notable changes to Coster are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.0.4] - 2026-08-16
+
+### Fixed
+
+- Dev toolchain: bumped `vitest` and `@vitest/coverage-v8` to `^4.1.10` and pinned
+  `esbuild` via `overrides` to `0.25.4`, clearing the repository's own `npm audit`
+  (esbuild dev-server advisories). `npm audit` on the repo now reports 0 vulnerabilities.
+- CI: dropped Node 18 from the test matrix (vitest 4 requires Node 20+).
+
 ## [1.0.3] - 2026-08-16
 
 ### Fixed
