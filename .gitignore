@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coster
+.coster/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OpenCode internal state
+.opencode/
