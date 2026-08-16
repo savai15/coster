@@ -49,7 +49,7 @@ describe('hooks command (git integration)', () => {
     expect(fs.existsSync(path.join(hooksDir, 'post-checkout'))).toBe(true);
 
     const hooksPath = execSync('git config core.hooksPath', { cwd: repoDir, encoding: 'utf-8' }).trim();
-    expect(path.resolve(hooksPath)).toBe(path.resolve(hooksDir));
+    expect(fs.realpathSync(hooksPath)).toBe(fs.realpathSync(hooksDir));
   });
 
   it('lists installed hooks', () => {
