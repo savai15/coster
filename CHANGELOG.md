@@ -3,6 +3,14 @@
 All notable changes to Coster are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] - 2026-08-17
+
+### Fixed
+
+- Dependency hardening: pinned `sharp` to `^0.35.0` via `overrides`, clearing the 5
+  high-severity libvips advisories pulled in transitively by `@xenova/transformers`
+  (used only for image inputs, which Coster does not exercise).
+
 ## [1.1.0] - 2026-08-17
 
 ### Added
