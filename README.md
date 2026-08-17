@@ -7,6 +7,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Node](https://img.shields.io/badge/node-18%2B-green.svg)](https://nodejs.org)
 
+![Coster promo](./assets/coster-promo.gif)
+
 Coster captures the **why** of your codebase — decisions, conventions, workarounds, and
 investigations — into a local SQLite database, then regenerates tool-specific memory files
 (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, …) so every AI assistant you use shares the same
