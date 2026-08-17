@@ -1,12 +1,12 @@
 import { Memory, ProjectContext } from '../types/index.js';
-import { TokenBudget, PrioritizedMemory } from './priority.js';
+import { TokenBudget, PrioritizedMemory, PriorityOptions } from './priority.js';
 
 export abstract class BaseGenerator {
   protected budget: TokenBudget;
   protected toolName: string;
 
-  constructor(tokenBudget: number, toolName: string) {
-    this.budget = new TokenBudget(tokenBudget);
+  constructor(tokenBudget: number, toolName: string, opts: PriorityOptions = {}) {
+    this.budget = new TokenBudget(tokenBudget, opts);
     this.toolName = toolName;
   }
 

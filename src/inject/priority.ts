@@ -1,4 +1,5 @@
 import { Memory } from '../types/index.js';
+import { decayImportance } from '../lifecycle/decay.js';
 
 export interface PrioritizedMemory {
   memory: Memory;
@@ -6,11 +7,34 @@ export interface PrioritizedMemory {
   tokens: number;
 }
 
+export interface PriorityOptions {
+  decayHalfLifeDays?: number;
+  decayMinImportance?: number;
+  mode?: 'curated' | 'all';
+}
+
+const CATEGORY_WEIGHTS: Record<string, number> = {
+  decision: 1.0,
+  workaround: 0.9,
+  investigation: 0.8,
+  convention: 0.7,
+  preference: 0.6,
+  recap: 0.5,
+  mistake: 0.4,
+};
+
+const IMPORTANCE_WEIGHT = 0.4;
+const ACCESS_WEIGHT = 0.2;
+const RECENCY_WEIGHT = 0.2;
+const CATEGORY_WEIGHT = 0.2;
+
 export class TokenBudget {
   private budget: number;
+  private opts: PriorityOptions;
 
-  constructor(budget: number) {
+  constructor(budget: number, opts: PriorityOptions = {}) {
     this.budget = budget;
+    this.opts = opts;
   }
 
   estimateTokens(content: string): number {
@@ -19,7 +43,7 @@ export class TokenBudget {
 
   prioritize(memories: Memory[]): PrioritizedMemory[] {
     const prioritized = memories
-      .map(memory => ({
+      .map((memory) => ({
         memory,
         score: this.calculateScore(memory),
         tokens: this.estimateTokens(memory.content),
@@ -40,12 +64,31 @@ export class TokenBudget {
   }
 
   private calculateScore(memory: Memory): number {
-    const importanceWeight = 0.4;
-    const accessWeight = 0.2;
-    const recencyWeight = 0.2;
-    const categoryWeight = 0.2;
+    // `all` mode: keep insertion (recency) order, only fit to budget.
+    if (this.opts.mode === 'all') return 1;
 
-    const importanceScore = memory.importance;
+    const baseValue =
+      memory.metadata && typeof memory.metadata.baseImportance === 'number'
+        ? (memory.metadata.baseImportance as number)
+        : memory.importance;
+
+    let importanceScore = baseValue;
+    if (
+      this.opts.decayHalfLifeDays &&
+      this.opts.decayMinImportance !== undefined
+    ) {
+      const days = Math.max(
+        0,
+        (Date.now() - new Date(memory.updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      importanceScore = decayImportance(
+        baseValue,
+        days,
+        this.opts.decayHalfLifeDays,
+        this.opts.decayMinImportance
+      );
+    }
+
     const accessScore = Math.min(memory.accessCount / 100, 1);
 
     const daysSinceUpdate = Math.floor(
@@ -53,22 +96,13 @@ export class TokenBudget {
     );
     const recencyScore = Math.max(0, 1 - daysSinceUpdate / 30);
 
-    const categoryScores: Record<string, number> = {
-      decision: 1.0,
-      workaround: 0.9,
-      investigation: 0.8,
-      convention: 0.7,
-      preference: 0.6,
-      recap: 0.5,
-      mistake: 0.4,
-    };
-    const categoryScore = categoryScores[memory.category] || 0.5;
+    const categoryScore = CATEGORY_WEIGHTS[memory.category] ?? 0.5;
 
     return (
-      importanceScore * importanceWeight +
-      accessScore * accessWeight +
-      recencyScore * recencyWeight +
-      categoryScore * categoryWeight
+      importanceScore * IMPORTANCE_WEIGHT +
+      accessScore * ACCESS_WEIGHT +
+      recencyScore * RECENCY_WEIGHT +
+      categoryScore * CATEGORY_WEIGHT
     );
   }
 }

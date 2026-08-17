@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import { Storage } from '../../core/storage.js';
-import { generateExports } from '../../core/export.js';
+import { syncProject } from '../utils/syncProject.js';
+import { printInfo } from '../utils/output.js';
 
 const SILENT = process.env.COSTER_SILENT === '1';
 
@@ -10,13 +11,15 @@ export function syncCommand(program: Command): void {
     .description('Sync memories to tool-specific files')
     .option('-t, --tool <tool>', 'Specific tool to sync (claude-code, opencode, cursor, copilot, windsurf, codex, cline, continue, kiro, all)', 'all')
     .option('--dry-run', 'Preview without writing files')
+    .option('--no-discover', 'Disable auto-enabling of newly detected AI assistant tools')
     .action(async (options) => {
       try {
         const projectPath = process.cwd();
         const storage = await Storage.create(projectPath);
 
-        const results = generateExports(storage, projectPath, {
-          toolFilter: options.tool === 'all' ? undefined : options.tool,
+        const results = syncProject(projectPath, storage, {
+          tool: options.tool === 'all' ? undefined : options.tool,
+          discover: options.discover !== false,
           dryRun: options.dryRun,
         });
 

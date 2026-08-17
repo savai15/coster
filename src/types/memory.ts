@@ -12,7 +12,7 @@ export const MemoryCategorySchema = z.enum([
 
 export type MemoryCategory = z.infer<typeof MemoryCategorySchema>;
 
-export const MemorySourceSchema = z.enum(['git-hook', 'shell-hook', 'manual', 'auto']);
+export const MemorySourceSchema = z.enum(['git-hook', 'shell-hook', 'manual', 'auto', 'import', 'pr', 'shell']);
 
 export type MemorySource = z.infer<typeof MemorySourceSchema>;
 

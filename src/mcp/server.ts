@@ -5,6 +5,10 @@ import { Storage } from '../core/storage.js';
 import { MemoryCategory, MemorySource } from '../types/index.js';
 import { generateExports } from '../core/export.js';
 import { getToolDefinition } from '../inject/registry.js';
+import { loadConfig } from '../core/config.js';
+import { createEmbedder, isModelPresent } from '../embed/embedder.js';
+import { hybridSearch } from '../search/hybrid.js';
+import { curateContext, renderRecallMarkdown } from '../inject/curate.js';
 
 const CATEGORIES = [
   'preference',
@@ -77,7 +81,7 @@ export async function runMcpServer(projectPath?: string): Promise<void> {
     'search_memories',
     {
       title: 'Search memories',
-      description: 'Search stored memories by keyword (matches content).',
+      description: 'Search stored memories by keyword and meaning (hybrid keyword + semantic).',
       inputSchema: {
         query: z.string().min(1).describe('Search query'),
         category: z.enum(CATEGORIES).optional().describe('Filter by category'),
@@ -87,14 +91,24 @@ export async function runMcpServer(projectPath?: string): Promise<void> {
     async (args) => {
       const storage = await getStorage();
       try {
-        let results = storage.searchMemories(args.query, args.category as MemoryCategory | undefined);
-        if (args.limit) {
-          results = results.slice(0, args.limit);
+        const config = loadConfig(root);
+        let embedder;
+        if (config.embeddings.enabled && isModelPresent(config.embeddings)) {
+          try {
+            embedder = createEmbedder(config.embeddings);
+          } catch {
+            embedder = undefined;
+          }
         }
-        for (const memory of results) {
+        const hits = await hybridSearch(storage, args.query, {
+          category: args.category as MemoryCategory | undefined,
+          limit: args.limit ?? 10,
+          embedder,
+        });
+        for (const { memory } of hits) {
           storage.recordAccess(memory.id);
         }
-        return textResult(JSON.stringify(results, null, 2));
+        return textResult(JSON.stringify(hits.map((h) => h.memory), null, 2));
       } finally {
         storage.close();
       }
@@ -136,12 +150,22 @@ export async function runMcpServer(projectPath?: string): Promise<void> {
           .string()
           .optional()
           .describe('Tool id (claude-code, opencode, cursor, ...). Omit for all enabled tools.'),
+        focus: z
+          .string()
+          .optional()
+          .describe('Topic to focus the context on (decay + optional semantic ranking)'),
         dryRun: z.boolean().optional().describe('Preview without writing files'),
       },
     },
     async (args) => {
       const storage = await getStorage();
       try {
+        if (args.focus) {
+          const list = await curateContext(storage, root, { focus: args.focus });
+          for (const p of list) storage.recordAccess(p.memory.id);
+          if (list.length === 0) return textResult('# No relevant memories found.');
+          return textResult(renderRecallMarkdown(list));
+        }
         const results = generateExports(storage, root, {
           toolFilter: args.tool,
           dryRun: args.dryRun ?? false,
@@ -153,6 +177,38 @@ export async function runMcpServer(projectPath?: string): Promise<void> {
           .map((r) => `# ${r.tool} -> ${r.path}\n\n${r.content}`)
           .join('\n\n');
         return textResult(body);
+      } finally {
+        storage.close();
+      }
+    }
+  );
+
+  server.registerTool(
+    'recall',
+    {
+      title: 'Recall relevant memories',
+      description:
+        'Recall the most relevant stored memories for a topic, file, or phrase, ranked by decayed importance and (optionally) semantic similarity.',
+      inputSchema: {
+        focus: z.string().min(1).describe('Topic, file path, or phrase to recall memories for'),
+        limit: z.number().int().min(1).max(500).optional().describe('Max memories to return'),
+        semantic: z
+          .boolean()
+          .optional()
+          .describe('Allow semantic ranking when an embedding model is present (default true)'),
+      },
+    },
+    async (args) => {
+      const storage = await getStorage();
+      try {
+        const list = await curateContext(storage, root, {
+          focus: args.focus,
+          useSemantic: args.semantic,
+          maxMemories: args.limit,
+        });
+        for (const p of list) storage.recordAccess(p.memory.id);
+        if (list.length === 0) return textResult('# No relevant memories found.');
+        return textResult(renderRecallMarkdown(list));
       } finally {
         storage.close();
       }
@@ -261,6 +317,29 @@ export async function runMcpServer(projectPath?: string): Promise<void> {
         }
         const results = generateExports(storage, root, { toolFilter: tool });
         const text = results[0]?.content ?? `# No memories for ${tool}`;
+        return {
+          contents: [{ uri: uri.href, text, mimeType: 'text/markdown' }],
+        };
+      } finally {
+        storage.close();
+      }
+    }
+  );
+
+  server.registerResource(
+    'recall',
+    new ResourceTemplate('recall://{topic}', { list: undefined }),
+    {
+      mimeType: 'text/markdown',
+      description: 'Curated, relevance-ranked memories for a given topic',
+    },
+    async (uri, variables) => {
+      const storage = await getStorage();
+      try {
+        const topic = decodeURIComponent(String(variables.topic));
+        const list = await curateContext(storage, root, { focus: topic });
+        for (const p of list) storage.recordAccess(p.memory.id);
+        const text = list.length ? renderRecallMarkdown(list) : '# No relevant memories found.';
         return {
           contents: [{ uri: uri.href, text, mimeType: 'text/markdown' }],
         };

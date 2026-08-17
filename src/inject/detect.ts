@@ -25,3 +25,24 @@ export function detectActiveTool(cwd: string): string | null {
   }
   return null;
 }
+
+/**
+ * Return every known AI assistant tool that has a marker file present in cwd.
+ * Unlike detectActiveTool (first match only), this lists all detected tools.
+ */
+export function listAvailableTools(cwd: string): string[] {
+  const found: string[] = [];
+  for (const { tool, files } of MARKERS) {
+    if (files.some((f) => fs.existsSync(path.join(cwd, f)))) {
+      found.push(tool);
+    }
+  }
+  return found;
+}
+
+/**
+ * Tools that have a marker present in cwd but are not yet enabled in config.
+ */
+export function discoverMissingTools(cwd: string, enabledNames: string[]): string[] {
+  return listAvailableTools(cwd).filter((t) => !enabledNames.includes(t));
+}

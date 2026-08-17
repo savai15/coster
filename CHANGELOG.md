@@ -3,6 +3,34 @@
 All notable changes to Coster are documented here. This project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-08-17
+
+### Added
+
+- `coster recall [<query>] [-f <file>] [-l <n] [--json] [--no-semantic]` — recall the most
+  relevant memories for a topic or file, ranked by age-decayed importance with optional
+  semantic blending.
+- Smart context injection: tool memory files are now relevance-curated by default
+  (`injection.mode: 'curated'`) instead of dumping every memory. New `injection.*` config:
+  `mode`, `useSemantic`, `semanticWeight`, `maxMemories`, `proactive`.
+- MCP `recall` tool and `recall://{topic}` resource, plus a `focus` argument on the
+  `get_context` tool for topic-aware context.
+- Daemon prints a one-line recall hint (💡) when a watched file is edited, pointing at the
+  most relevant existing memory (gated by `injection.proactive`).
+- `coster byebro [--yes] [--purge-global]` — fully remove Coster from a project (stops the
+  daemon, removes the OS service, uninstalls git/shell hooks and MCP registration, deletes
+  `.coster/`) while leaving generated tool files (AGENTS.md, CLAUDE.md, …) untouched.
+
+### Changed
+
+- `TokenBudget` scoring now uses age-decayed importance, so fresh and frequently-used
+  memories surface while stale ones fade.
+
+### Fixed
+
+- `Storage.createMemory` now honors caller-supplied `createdAt`/`updatedAt`/`accessedAt`
+  timestamps instead of overwriting them.
+
 ## [1.0.4] - 2026-08-16
 
 ### Fixed

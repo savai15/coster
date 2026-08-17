@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { printError } from './utils/output.js';
+import { ensureInitialized } from './utils/ensureInit.js';
 import { initCommand } from './commands/init.js';
 import { captureCommand } from './commands/capture.js';
 import { searchCommand } from './commands/search.js';
@@ -18,6 +19,13 @@ import { noteCommand } from './commands/note.js';
 import { setupCommand } from './commands/setup.js';
 import { showCommand } from './commands/show.js';
 import { completionCommand } from './commands/completion.js';
+import { doctorCommand } from './commands/doctor.js';
+import { daemonCommand } from './commands/daemon.js';
+import { embeddingsCommand } from './commands/embeddings.js';
+import { lifecycleCommand } from './commands/lifecycle.js';
+import { archiveCommand } from './commands/archive.js';
+import { recallCommand } from './commands/recall.js';
+import { byebroCommand } from './commands/byebro.js';
 
 const program = new Command();
 
@@ -44,6 +52,25 @@ noteCommand(program);
 setupCommand(program);
 showCommand(program);
 completionCommand(program);
+doctorCommand(program);
+daemonCommand(program);
+embeddingsCommand(program);
+program.addCommand(lifecycleCommand());
+program.addCommand(archiveCommand());
+recallCommand(program);
+program.addCommand(byebroCommand());
+
+// Auto-initialize before any command that needs a project. "set-and-forget":
+// a single `coster init` (or the first command) bootstraps everything.
+const NO_AUTOINIT = new Set(['init', 'setup', 'completion', 'doctor']);
+program.hook('preAction', async (_thisCommand, actionCommand) => {
+  let cmd: Command | null = actionCommand;
+  while (cmd) {
+    if (NO_AUTOINIT.has(cmd.name())) return;
+    cmd = cmd.parent;
+  }
+  await ensureInitialized(process.cwd());
+});
 
 async function main(): Promise<void> {
   try {

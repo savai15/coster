@@ -10,10 +10,11 @@ import { ContinueGenerator } from './continue.js';
 import { KiroGenerator } from './kiro.js';
 import { CosterGenerator } from './coster.js';
 import { BaseGenerator } from './base.js';
+import { PriorityOptions } from './priority.js';
 
 export interface ToolDefinition {
   name: string;
-  generator: new (tokenBudget: number) => BaseGenerator;
+  generator: new (tokenBudget: number, toolName: string, opts?: PriorityOptions) => BaseGenerator;
   defaultPath: string;
 }
 
@@ -37,12 +38,13 @@ export function getToolDefinition(name: string): ToolDefinition | null {
 export function generateForTool(
   name: string,
   context: ProjectContext,
-  tokenBudget: number
+  tokenBudget: number,
+  opts: PriorityOptions = {}
 ): string {
   const def = getToolDefinition(name);
   if (!def) {
     throw new Error(`Unknown tool: ${name}`);
   }
-  const generator = new def.generator(tokenBudget);
+  const generator = new def.generator(tokenBudget, name, opts);
   return generator.generate(context);
 }

@@ -75,7 +75,11 @@ export function generateExports(
 
     let content: string;
     try {
-      content = generateForTool(tool.name, context, tool.tokenBudget);
+      content = generateForTool(tool.name, context, tool.tokenBudget, {
+        decayHalfLifeDays: config.lifecycle.decayHalfLifeDays,
+        decayMinImportance: config.lifecycle.decayMinImportance,
+        mode: config.injection.mode,
+      });
     } catch {
       continue;
     }

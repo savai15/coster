@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { MemoryCategory } from '../types/index.js';
+import { MemoryCategory, CommitPolicy } from '../types/index.js';
 
 export interface GitCommit {
   hash: string;
@@ -82,4 +82,91 @@ export function parseCostDirective(message: string): CostDirective | null {
   }
 
   return { category, content };
+}
+
+export interface GitDiffFile {
+  path: string;
+  status: string;
+  insertions: number;
+  deletions: number;
+}
+
+export interface GitDiffStats {
+  files: GitDiffFile[];
+  totalLines: number;
+}
+
+/** Read line-count stats for the committed HEAD (staged=false) or staged changes (staged=true). */
+export function readDiffStats(cwd: string, staged = false): GitDiffStats {
+  const range = staged ? '--staged' : 'HEAD';
+  const raw = runGit(`diff --numstat ${range}`, cwd);
+  const files: GitDiffFile[] = [];
+  let totalLines = 0;
+  if (raw) {
+    for (const line of raw.split('\n')) {
+      const m = line.match(/^(\d+|-)\t(\d+|-)\t(.+)$/);
+      if (!m) continue;
+      const insertions = m[1] === '-' ? 0 : parseInt(m[1], 10);
+      const deletions = m[2] === '-' ? 0 : parseInt(m[2], 10);
+      files.push({ path: m[3].trim(), status: '', insertions, deletions });
+      totalLines += insertions + deletions;
+    }
+  }
+  return { files, totalLines };
+}
+
+function globMatch(pattern: string, file: string): boolean {
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*\*\//g, '(?:.+\\/)?')
+    .replace(/\*\*/g, '.*')
+    .replace(/\*/g, '[^/]*')
+    .replace(/\?/g, '.');
+  return new RegExp(`^${escaped}$`).test(file);
+}
+
+/**
+ * Decide whether a commit is worth auto-capturing as a memory without an
+ * explicit `cost:` directive. Signal-rich = touches rule/config files, is a
+ * large diff, or its message mentions fix/bug keywords.
+ */
+export function signalRichPolicy(commit: GitCommit, stats: GitDiffStats, policy: CommitPolicy): boolean {
+  if (!policy.enabled) return false;
+  const msg = commit.message.toLowerCase();
+  if (policy.fixKeywords.some((k) => msg.includes(k))) return true;
+  if (stats.totalLines >= policy.minDiffLines) return true;
+  if (stats.files.some((f) => policy.signalGlobs.some((g) => globMatch(g, f.path)))) return true;
+  return false;
+}
+
+/**
+ * Derive a memory category, human-readable content, and importance from a
+ * commit. Used for signal-rich auto-capture (no `cost:` directive present).
+ */
+export function classifyCommit(commit: GitCommit, stats: GitDiffStats): {
+  category: MemoryCategory;
+  content: string;
+  importance: number;
+} {
+  const msg = commit.message.toLowerCase();
+  const subject = commit.message.split('\n')[0].trim() || '(no subject)';
+  const files = stats.files.map((f) => f.path);
+
+  const ruleFile = files.some((f) =>
+    /(CLAUDE\.md|AGENTS\.md|\.rules?$|config\.|tsconfig|package\.json|migrations|Dockerfile|Makefile|\.env)/i.test(f)
+  );
+  const fixish = /\b(fix|bug|hotfix|revert|patch|workaround)\b/.test(msg);
+
+  let category: MemoryCategory = 'recap';
+  if (ruleFile) category = 'decision';
+  else if (fixish) category = 'workaround';
+
+  const fileList = files.slice(0, 8).join(', ') + (files.length > 8 ? '…' : '');
+  const content = `Commit ${commit.hash.substring(0, 8)}: ${subject}. Files: ${fileList || 'none'}`;
+
+  let importance = 0.45;
+  if (stats.totalLines >= 200) importance = 0.7;
+  else if (stats.totalLines >= 120) importance = 0.6;
+
+  return { category, content, importance };
 }

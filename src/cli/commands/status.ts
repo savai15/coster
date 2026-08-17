@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { Storage } from '../../core/storage.js';
 import { isGitRepo } from '../../capture/git.js';
-import { detectActiveTool } from '../../inject/detect.js';
+import { detectActiveTool, listAvailableTools } from '../../inject/detect.js';
+import { loadConfig } from '../../core/config.js';
 import { hooksDir } from './hooks.js';
 import { printInfo, printError } from '../utils/output.js';
 
@@ -42,6 +43,14 @@ export function statusCommand(program: Command): void {
         }
         rows.push(['Memories', memoryCount]);
         rows.push(['Database size', dbSize > 0 ? `${(dbSize / 1024).toFixed(1)} KB` : 'empty']);
+
+        const config = loadConfig(cwd);
+        const detectedTools = listAvailableTools(cwd);
+        rows.push(['Detected tools', detectedTools.join(', ') || 'none']);
+        const unconfigured = detectedTools.filter((t) => !config.tools.find((c) => c.name === t));
+        if (unconfigured.length) {
+          rows.push(['Unconfigured', unconfigured.join(', ')]);
+        }
 
         if (!initialized) {
           printError('Coster is not initialized in this project. Run `coster init`.');

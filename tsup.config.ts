@@ -10,7 +10,7 @@ export default defineConfig({
   minify: false,
   target: 'node18',
   outDir: 'dist',
-  external: ['@modelcontextprotocol/sdk'],
+  external: ['@modelcontextprotocol/sdk', 'chokidar', '@xenova/transformers'],
   banner: {
     js: '#!/usr/bin/env node',
   },

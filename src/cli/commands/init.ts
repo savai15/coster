@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import readline from 'readline';
 import { Storage } from '../../core/storage.js';
 import { saveConfig } from '../../core/config.js';
@@ -10,6 +11,7 @@ import { TOOL_REGISTRY } from '../../inject/registry.js';
 import { isGitRepo } from '../../capture/git.js';
 import { printInfo, printError } from '../utils/output.js';
 import { installHooks } from './hooks.js';
+import { registerMcp } from './mcp.js';
 
 const SILENT = process.env.COSTER_SILENT === '1';
 
@@ -103,9 +105,55 @@ export async function runBootstrap(options: { minimal?: boolean; tool?: string }
       { name: 'coster', enabled: true, exportPath: 'COSTER.md', tokenBudget: 12000 },
     ],
     quality: { minScore: 4, maxTokens: 200, autoCleanup: true },
-    lifecycle: { recapTTL: 30, investigationTTL: 90, workaroundTTL: 90, autoArchive: true },
-    hooks: { git: true, shell: false, postCommit: true, postCheckout: true },
+    lifecycle: { recapTTL: 30, investigationTTL: 90, workaroundTTL: 90, autoArchive: true, decayHalfLifeDays: 180, decayMinImportance: 0.2, consolidateSimilarity: 0.92 },
+    hooks: { git: true, shell: false, postCommit: true, postCheckout: true, prepareCommitMsg: false },
+    capture: {
+      commitPolicy: {
+        enabled: true,
+        minDiffLines: 120,
+        signalGlobs: [
+          'CLAUDE.md',
+          'AGENTS.md',
+          '**/*.rules',
+          '**/*.rule',
+          '**/*.config.*',
+          'package.json',
+          'package-lock.json',
+          'tsconfig*.json',
+          '**/migrations/**',
+          'Dockerfile',
+          'Makefile',
+          '.env*',
+          '**/.cursorrules',
+          '**/.windsurf/**',
+          '**/.clinerules',
+        ],
+        fixKeywords: ['fix', 'bug', 'hotfix', 'workaround', 'revert', 'patch'],
+      },
+      shell: { enabled: false },
+      pr: { enabled: false, limit: 20 },
+    },
     autoInject: true,
+    embeddings: {
+      enabled: true,
+      model: 'Xenova/bge-base-en-v1.5',
+      dim: 768,
+      modelDir: path.join(os.homedir(), '.coster', 'models'),
+      autoBuild: true,
+    },
+    scheduler: {
+      enabled: false,
+      decayEveryHours: 24,
+      archiveEveryHours: 24,
+      consolidateEveryHours: 168,
+    },
+    injection: {
+      mode: 'curated' as const,
+      useSemantic: true,
+      semanticWeight: 0.4,
+      maxMemories: 200,
+      proactive: true,
+    },
   };
 
   // Determine target tool: explicit flag, detected file, or interactive prompt.
@@ -139,6 +187,8 @@ export async function runBootstrap(options: { minimal?: boolean; tool?: string }
   if (gitInstalled) {
     printInfo('Installed git hooks (capture on commit/checkout).');
   }
+
+  registerMcp(projectPath);
 
   if (options.minimal) {
     printInfo('Minimal init complete. Run `coster sync` to generate tool files later.');
